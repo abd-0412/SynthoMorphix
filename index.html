@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SynthoMorphix — Enterprise Privacy Gateway for Code AI</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Feather Icons CDN (Clean enterprise SVG icons, zero emojis) -->
+  <script src="https://unpkg.com/feather-icons"></script>
+  <!-- Premium Modern Typography (Inter for UI, JetBrains Mono for Code) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+    pre, code, textarea {
+      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    /* Subtle bespoke executive scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    .feather {
+      width: 15px;
+      height: 15px;
+      vertical-align: -2px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-indigo-100 selection:text-indigo-900 antialiased">
+
+  <!-- Executive Top Navigation Bar -->
+  <header class="bg-white/90 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-50 px-6 py-3.5 shadow-sm">
+    <div class="max-w-[1720px] mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      
+      <!-- Brand & Organization Title -->
+      <div class="flex items-center space-x-3.5">
+        <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-600/20">
+          <i data-feather="shield" class="w-5 h-5 text-white"></i>
+        </div>
+        <div>
+            <h1 class="text-base font-bold tracking-tight text-slate-900">
+              SynthoMorphix
+            </h1>
+          <p class="text-xs text-slate-500 font-medium">Deterministic Code De-identification &amp; Reverse Suture Architecture</p>
+        </div>
+      </div>
+
+      <!-- Controls & Health Monitor -->
+      <div class="flex items-center flex-wrap gap-3">
+        <!-- Masking Level Selector -->
+        <div class="flex items-center space-x-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs shadow-inner">
+          <i data-feather="sliders" class="w-3.5 h-3.5 text-slate-500"></i>
+          <span class="text-slate-600 font-medium">Protection Level:</span>
+          <select id="maskLevelSelect" class="bg-white text-indigo-700 font-semibold rounded px-2.5 py-1 outline-none border border-slate-200 focus:border-indigo-500 shadow-sm cursor-pointer transition">
+            <option value="L1" selected>L1: Identifiers Only</option>
+            <option value="L2">L2: Identifiers, Strings &amp; Comments</option>
+            <option value="L0">L0: Pass-through (Testing)</option>
+          </select>
+        </div>
+
+        <!-- Cloud AI Key Input & Inference Badge -->
+        <div class="flex items-center space-x-2 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-xs shadow-inner">
+          <i data-feather="key" class="w-3.5 h-3.5 text-slate-500"></i>
+          <span class="text-slate-600 font-medium">Cloud AI Key:</span>
+          <input type="password" id="cloudAiKeyInput" placeholder="Optional Groq key..." autocomplete="off" class="bg-white text-slate-800 rounded px-2 py-1 outline-none border border-slate-200 focus:border-indigo-500 font-mono text-[11px] w-36 sm:w-44 shadow-sm transition" />
+        </div>
+
+        <!-- Inference Mode Badge -->
+        <div id="inferenceModeBadge" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold tracking-wide transition-all duration-200 bg-slate-100 border-slate-200 text-slate-600 shadow-sm">
+          <span class="inline-block w-2 h-2 rounded-full bg-slate-400"></span>
+          <span id="inferenceModeText">Inference: Mock (offline)</span>
+        </div>
+
+        <!-- Connection Status Badge -->
+        <div id="connectionBadge" class="flex items-center space-x-2 px-3 py-1.5 rounded-lg border text-xs font-semibold tracking-wide transition-all duration-200 bg-white border-slate-200 text-slate-500 shadow-sm">
+          <span class="inline-block w-2 h-2 rounded-full bg-slate-400 animate-pulse"></span>
+          <span>Checking Gateway...</span>
+        </div>
+
+        <!-- Session ID Indicator -->
+        <div class="hidden lg:flex items-center space-x-1.5 bg-slate-100 border border-slate-200 rounded-lg px-2.5 py-1.5 text-[11px] text-slate-600 font-mono">
+          <span class="text-slate-400">Session:</span>
+          <span id="sessionDisplay" class="text-indigo-600 font-medium font-mono">Initializing...</span>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Notification Toast Container -->
+  <div id="toastContainer" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+  <!-- Main Three-Column Enterprise Workspace -->
+  <main class="flex-1 max-w-[1720px] w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- Column 1: Your Private Code -->
+    <section class="flex flex-col bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+      <div class="flex items-center justify-between pb-3.5 border-b border-slate-100 mb-3.5">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-7 h-7 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600">
+            <i data-feather="lock" class="w-3.5 h-3.5"></i>
+          </div>
+          <div>
+            <h2 class="font-bold text-sm text-slate-900 tracking-tight">1. Proprietary Source Code</h2>
+            <p class="text-[11px] text-slate-400">Trusted Local Zone</p>
+          </div>
+        </div>
+        <span id="srcMetrics" class="text-[11px] font-mono text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded font-medium">
+          0 lines · 0 bytes
+        </span>
+      </div>
+
+      <p class="text-xs text-slate-500 mb-3 leading-relaxed">Confidential source code containing proprietary business algorithms, calculations, and local variables.</p>
+
+      <div class="flex-1 relative flex flex-col min-h-[390px]">
+        <textarea id="sourceCodeInput" class="w-full flex-1 bg-slate-50/70 text-slate-800 border border-slate-200 rounded-xl p-4 text-xs font-mono resize-none focus:outline-none focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 leading-relaxed transition shadow-inner" spellcheck="false"></textarea>
+      </div>
+
+      <div class="pt-4 mt-auto">
+        <button id="scrubBtn" onclick="scrubCode()" class="w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs tracking-wide uppercase flex items-center justify-center space-x-2 shadow-sm active:scale-[0.99] transition duration-150">
+          <i data-feather="shield" class="w-4 h-4 text-emerald-400"></i>
+          <span>Step 1: Hide Private Details</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Column 2: In-Flight WAN Payload -->
+    <section class="flex flex-col bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+      <div class="flex items-center justify-between pb-3.5 border-b border-slate-100 mb-3.5">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-7 h-7 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600">
+            <i data-feather="send" class="w-3.5 h-3.5"></i>
+          </div>
+          <div>
+            <h2 class="font-bold text-sm text-slate-900 tracking-tight">2. Cloud Transmission Payload</h2>
+            <p class="text-[11px] text-slate-400">Untrusted Public WAN</p>
+          </div>
+        </div>
+        <div class="flex items-center space-x-1.5">
+          <span id="hiddenItemsBadge" class="text-[11px] font-mono text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded font-medium">
+            Identifiers hidden: 0
+          </span>
+          <span id="dynamicRiskBadge" title="Dynamic risk evaluation" class="text-[11px] font-mono text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded font-medium">
+            Dynamic risk: Not checked
+          </span>
+        </div>
+      </div>
+
+      <p class="text-xs text-slate-500 mb-3 leading-relaxed">Structurally equivalent code with synthetic labels (fn_01, var_01). Original identifier names are not sent to the cloud.</p>
+
+      <div class="flex-1 relative flex flex-col min-h-[260px]">
+        <textarea id="scrubbedCodeOutput" readonly class="w-full flex-1 bg-amber-50/20 text-slate-700 border border-slate-200 rounded-xl p-4 text-xs font-mono resize-none focus:outline-none leading-relaxed shadow-inner" placeholder="// De-identified AST code payload will appear here after Step 1..." spellcheck="false"></textarea>
+      </div>
+
+      <!-- Instruction Input for AI Dispatch -->
+      <div class="pt-3">
+        <label for="aiInstructionInput" class="text-[11px] font-semibold text-slate-600 flex items-center justify-between mb-1">
+          <span>AI Instruction:</span>
+          <span class="text-[10px] text-slate-400 font-normal">Scrubbed before sending</span>
+        </label>
+        <input type="text" id="aiInstructionInput" value="Review and improve this code" maxlength="1000" class="w-full bg-slate-50 text-slate-800 border border-slate-200 rounded-lg px-3 py-2 text-xs font-mono outline-none focus:border-indigo-500 focus:bg-white shadow-inner transition" />
+      </div>
+
+      <!-- Collapsible Egress Record Panel: What the cloud received -->
+      <div class="pt-2">
+        <details id="egressDetails" class="bg-slate-50 border border-slate-200 rounded-lg text-xs overflow-hidden">
+          <summary class="px-3 py-2 cursor-pointer font-medium text-slate-600 hover:text-indigo-600 flex items-center justify-between select-none">
+            <span class="flex items-center space-x-1.5">
+              <i data-feather="eye" class="w-3.5 h-3.5"></i>
+              <span>What the cloud received</span>
+            </span>
+            <span id="egressBytesBadge" class="text-[10px] font-mono text-slate-500">0 bytes</span>
+          </summary>
+          <div class="p-3 border-t border-slate-200 bg-white">
+            <div class="text-[10px] text-slate-400 uppercase font-mono mb-1">Sent Instruction:</div>
+            <div id="egressInstruction" class="text-[11px] font-mono bg-slate-50 p-2 rounded border border-slate-100 text-slate-700 mb-2 whitespace-pre-wrap break-all">None</div>
+            <div class="text-[10px] text-slate-400 uppercase font-mono mb-1">Egress Preview (Exact Wire Payload):</div>
+            <pre id="egressPreviewBox" class="text-[10px] font-mono bg-slate-900 text-slate-100 p-2 rounded overflow-x-auto max-h-36 leading-normal whitespace-pre-wrap break-all">{}</pre>
+          </div>
+        </details>
+      </div>
+
+      <!-- Helper note for L1 masking level -->
+      <div id="l1HelperNote" class="text-[11px] text-slate-400 italic pt-2">
+        Note: L1 hides identifiers only. Strings and comments are hidden only at L2.
+      </div>
+
+      <div class="pt-3 mt-auto">
+        <button id="dispatchAiBtn" onclick="dispatchAiAndSuture()" disabled class="w-full py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-medium text-xs tracking-wide uppercase flex items-center justify-center space-x-2 shadow-sm active:scale-[0.99] transition duration-150">
+          <i data-feather="send" class="w-4 h-4 text-white"></i>
+          <span id="dispatchBtnText">Step 2: Dispatch to Cloud AI and Suture</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Column 3: Restored Final Code -->
+    <section class="flex flex-col bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+      <div class="flex items-center justify-between pb-3.5 border-b border-slate-100 mb-3.5">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-7 h-7 rounded-lg bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600">
+            <i data-feather="check-circle" class="w-3.5 h-3.5"></i>
+          </div>
+          <div>
+            <h2 class="font-bold text-sm text-slate-900 tracking-tight">3. Reconstructed Code</h2>
+            <p class="text-[11px] text-slate-400">Deterministic Local Suture</p>
+          </div>
+        </div>
+        <div class="flex items-center space-x-1.5 flex-wrap gap-1">
+          <span id="exactMatchBadge" class="text-[11px] font-mono text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded font-medium">
+            Awaiting Suture
+          </span>
+          <span id="unmappedBadge" class="hidden text-[11px] font-mono text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded font-medium">
+            Unmapped tokens: 0
+          </span>
+        </div>
+      </div>
+
+      <p class="text-xs text-slate-500 mb-3 leading-relaxed">The AI-generated logic is restored locally using the in-memory vault. Identifier names stay on this machine.</p>
+
+      <!-- Raw Cloud LLM Output Display (Column 2 Output / Intermediate) -->
+      <div class="mb-3 flex flex-col space-y-1">
+        <label for="aiResponseInput" class="text-[11px] font-semibold text-slate-600 flex items-center justify-between">
+          <span>Raw Cloud LLM Response:</span>
+          <span id="llmModelLabel" class="text-[10px] text-slate-400 font-mono">Model: None</span>
+        </label>
+        <textarea id="aiResponseInput" rows="4" class="w-full bg-slate-50 text-slate-800 border border-slate-200 rounded-lg p-2.5 text-xs font-mono resize-y focus:outline-none focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-100 leading-normal" placeholder="// Raw cloud LLM output appears here (or paste manual response)..."></textarea>
+      </div>
+
+      <!-- Final Reconstructed Output -->
+      <div class="flex-1 relative flex flex-col min-h-[220px]">
+        <textarea id="reconstructedCodeOutput" readonly class="w-full flex-1 bg-slate-50/70 text-slate-800 border border-slate-200 rounded-xl p-4 text-xs font-mono resize-none focus:outline-none leading-relaxed shadow-inner" placeholder="// Reconstructed solution with restored symbols will appear here..."></textarea>
+      </div>
+
+      <!-- FR-08 Divergence Discrepancy Note (Shown if unmapped tokens exist) -->
+      <div id="divergenceReport" class="hidden text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2.5 mt-2">
+        <span class="font-semibold">Divergence Report (FR-08):</span> Unexpected synthetic tokens introduced by model: <span id="divergenceList" class="font-mono"></span>
+      </div>
+
+      <div class="pt-4 mt-auto">
+        <button id="purgeBtn" onclick="purgeSession()" class="w-full py-3 px-4 rounded-xl bg-white hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 border border-slate-200 text-slate-600 font-medium text-xs tracking-wide uppercase flex items-center justify-center space-x-2 shadow-sm transition duration-150">
+          <i data-feather="trash-2" class="w-4 h-4 text-slate-400 hover:text-rose-600"></i>
+          <span>Clear Session Memory</span>
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Clean Corporate Telemetry Footer -->
+  <footer class="bg-white border-t border-slate-200 px-6 py-4 mt-auto">
+    <div class="max-w-[1720px] mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500 font-mono">
+      <div class="flex items-center flex-wrap gap-5">
+        <span class="flex items-center gap-1.5">
+          <span class="text-slate-400">Match Status:</span>
+          <span id="auditExact" class="text-slate-700 font-semibold">Idle</span>
+        </span>
+        <span class="flex items-center gap-1.5">
+          <span class="text-slate-400">Restored Symbols:</span>
+          <span id="auditRestored" class="text-slate-700 font-semibold">0</span>
+        </span>
+        <span class="flex items-center gap-1.5">
+          <span class="text-slate-400">Unmapped Discrepancies:</span>
+          <span id="auditUnmapped" class="text-emerald-600 font-semibold">0</span>
+        </span>
+        <span class="flex items-center gap-1.5">
+          <span class="text-slate-400">Storage Architecture:</span>
+          <span class="text-indigo-600 font-semibold">Volatile RAM Only (Zero Disk Writes)</span>
+        </span>
+      </div>
+
+      <div class="text-[11px] text-slate-400">
+        SynthoMorphix Privacy Gateway v3.2 &middot; Academic Benchmark Research (IEEE TSE 2024)
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Gateway Configuration
+    const GATEWAY_BASE = "http://127.0.0.1:8000";
+
+    // Volatile session storage
+    let currentSessionId = generateUUID();
+    let isGatewayOnline = false;
+    let serverHasGroqKey = false;
+    let configuredGroqModel = "llama-3.1-8b-instant";
+
+    // Production enterprise payroll/billing Python sample
+    const ENTERPRISE_SAMPLE_CODE = `import os, sys
+from decimal import Decimal
+
+class PayrollPipeline:
+    def __init__(self, company_id, base_multiplier=1.15):
+        self.company_id = company_id
+        self.base_multiplier = base_multiplier
+
+    def calculate_disbursement(self, employee_record, bonus_rate=0.08):
+        # Calculate gross employee compensation
+        base_salary = Decimal(employee_record.get("salary", 50000))
+        calculated_bonus = base_salary * Decimal(bonus_rate)
+        adjusted_total = (base_salary + calculated_bonus) * Decimal(self.base_multiplier)
+        return float(adjusted_total)
+
+def process_batch():
+    pipeline = PayrollPipeline(company_id="CORP_8849")
+    employee = {"name": "Alice Jenkins", "salary": 92000}
+    final_payout = pipeline.calculate_disbursement(employee, bonus_rate=0.12)
+    return f"Disbursement approved: {final_payout}"
+`;
+
+    function updateInferenceModeBadge() {
+      const keyInput = document.getElementById("cloudAiKeyInput");
+      const clientKeyEntered = keyInput && keyInput.value.trim().length > 0;
+      const isReal = clientKeyEntered || serverHasGroqKey;
+
+      const badge = document.getElementById("inferenceModeBadge");
+      const text = document.getElementById("inferenceModeText");
+
+      if (isReal) {
+        badge.className = "flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold tracking-wide bg-emerald-50 border-emerald-200 text-emerald-700 shadow-sm transition";
+        badge.innerHTML = `<span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span><span id="inferenceModeText">Inference: Real Cloud LLM</span>`;
+      } else {
+        badge.className = "flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold tracking-wide bg-slate-100 border-slate-200 text-slate-600 shadow-sm transition";
+        badge.innerHTML = `<span class="inline-block w-2 h-2 rounded-full bg-slate-400"></span><span id="inferenceModeText">Inference: Mock (offline)</span>`;
+      }
+    }
+
+    // DOM Ready initialization
+    window.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("sourceCodeInput").value = ENTERPRISE_SAMPLE_CODE;
+      document.getElementById("sessionDisplay").textContent = currentSessionId.slice(0, 8) + "...";
+      updateSourceMetrics();
+      
+      // Update line and byte counters on input
+      document.getElementById("sourceCodeInput").addEventListener("input", updateSourceMetrics);
+
+      // Listen to cloud AI key changes
+      const keyInput = document.getElementById("cloudAiKeyInput");
+      if (keyInput) {
+        keyInput.addEventListener("input", updateInferenceModeBadge);
+      }
+
+      // Toggle L1 helper note on dropdown change and optionally auto-re-scrub
+      function updateL1HelperVisibility() {
+        const level = document.getElementById("maskLevelSelect").value;
+        const note = document.getElementById("l1HelperNote");
+        if (note) {
+          if (level === "L1") {
+            note.classList.remove("hidden");
+          } else {
+            note.classList.add("hidden");
+          }
+        }
+      }
+
+      document.getElementById("maskLevelSelect").addEventListener("change", () => {
+        updateL1HelperVisibility();
+        const sourceVal = document.getElementById("sourceCodeInput").value;
+        if (sourceVal.trim()) {
+          scrubCode();
+        }
+      });
+      updateL1HelperVisibility();
+
+      // Render Feather SVG Icons
+      if (window.feather) {
+        feather.replace();
+      }
+
+      // Check backend health immediately and schedule poll
+      checkGatewayHealth();
+      setInterval(checkGatewayHealth, 3500);
+    });
+
+    function generateUUID() {
+      if (crypto && crypto.randomUUID) {
+        return crypto.randomUUID();
+      }
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    }
+
+    function updateSourceMetrics() {
+      const code = document.getElementById("sourceCodeInput").value;
+      const lines = code ? code.split("\n").length : 0;
+      const bytes = new TextEncoder().encode(code).length;
+      document.getElementById("srcMetrics").textContent = `${lines} lines · ${bytes} bytes`;
+    }
+
+    async function checkGatewayHealth() {
+      const badge = document.getElementById("connectionBadge");
+      try {
+        const resp = await fetch(`${GATEWAY_BASE}/health`, { method: "GET" });
+        if (resp.ok) {
+          isGatewayOnline = true;
+          const data = await resp.json();
+          serverHasGroqKey = Boolean(data.has_groq_key);
+          if (data.groq_model) {
+            configuredGroqModel = data.groq_model;
+          }
+          updateInferenceModeBadge();
+          badge.className = "flex items-center space-x-2 px-3 py-1.5 rounded-lg border text-xs font-semibold tracking-wide bg-emerald-50 border-emerald-200 text-emerald-700 shadow-sm";
+          badge.innerHTML = `<span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span><span>Gateway Connected (Port 8000)</span>`;
+        } else {
+          throw new Error("Invalid response");
+        }
+      } catch (err) {
+        isGatewayOnline = false;
+        badge.className = "flex items-center space-x-2 px-3 py-1.5 rounded-lg border text-xs font-semibold tracking-wide bg-rose-50 border-rose-200 text-rose-700 shadow-sm";
+        badge.innerHTML = `<span class="inline-block w-2 h-2 rounded-full bg-rose-500"></span><span>Gateway Offline (Run main.py)</span>`;
+      }
+    }
+
+    function showToast(message, type = "info") {
+      const container = document.getElementById("toastContainer");
+      const toast = document.createElement("div");
+      
+      let borderStyle = "border-slate-200 bg-white text-slate-800 shadow-lg shadow-slate-200/50";
+      if (type === "success") borderStyle = "border-emerald-200 bg-white text-emerald-900 shadow-lg shadow-emerald-500/10";
+      if (type === "error") borderStyle = "border-rose-200 bg-white text-rose-900 shadow-lg shadow-rose-500/10";
+      if (type === "warn") borderStyle = "border-amber-200 bg-white text-amber-900 shadow-lg shadow-amber-500/10";
+
+      toast.className = `p-3.5 rounded-xl border text-xs font-medium flex items-center space-x-2 pointer-events-auto transform transition-all duration-300 translate-y-2 opacity-0 ${borderStyle}`;
+      toast.innerHTML = `<span>${message}</span>`;
+      container.appendChild(toast);
+
+      requestAnimationFrame(() => {
+        toast.classList.remove("translate-y-2", "opacity-0");
+      });
+
+      setTimeout(() => {
+        toast.classList.add("translate-y-2", "opacity-0");
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    // Step 1: Hide Private Details (Scrub)
+    async function scrubCode() {
+      const sourceCode = document.getElementById("sourceCodeInput").value;
+      const maskLevel = document.getElementById("maskLevelSelect").value;
+      const scrubBtn = document.getElementById("scrubBtn");
+
+      if (!sourceCode.trim()) {
+        showToast("Source code input is empty.", "warn");
+        return;
+      }
+
+      scrubBtn.disabled = true;
+      scrubBtn.innerHTML = `<span>De-identifying AST...</span>`;
+
+      try {
+        const resp = await fetch(`${GATEWAY_BASE}/api/v1/scrub`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            source_code: sourceCode,
+            mask_level: maskLevel,
+            session_id: currentSessionId
+          })
+        });
+
+        if (!resp.ok) {
+          const errData = await resp.json();
+          throw new Error(errData.detail || "De-identification failed");
+        }
+
+        const data = await resp.json();
+
+        if (data.status === "BLOCKED_DYNAMIC_RISK") {
+          document.getElementById("scrubbedCodeOutput").value = "";
+          document.getElementById("dispatchAiBtn").disabled = true;
+          document.getElementById("hiddenItemsBadge").textContent = "Identifiers hidden: 0";
+          showToast("Blocked: dynamic code detected. Payload withheld for security.", "error");
+          const riskBadge = document.getElementById("dynamicRiskBadge");
+          riskBadge.textContent = "Dynamic risk: Blocked";
+          riskBadge.className = "text-[11px] font-mono text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded font-medium";
+          riskBadge.title = "Dynamic reflection detected (getattr/eval/exec). Payload blocked.";
+          return;
+        }
+
+        document.getElementById("scrubbedCodeOutput").value = data.scrubbed_code;
+        
+        // Update "Identifiers hidden: N" badge with tokens_isolated
+        document.getElementById("hiddenItemsBadge").textContent = `Identifiers hidden: ${data.tokens_isolated}`;
+        
+        // Update Dynamic Risk Badge
+        const riskBadge = document.getElementById("dynamicRiskBadge");
+        const policyStatus = data.policy_status || (data.dynamic_risk ? "pass-through" : "none");
+        if (data.dynamic_risk) {
+          riskBadge.textContent = `Dynamic risk: Detected (${policyStatus})`;
+          riskBadge.className = "text-[11px] font-mono text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded font-medium";
+          riskBadge.title = `Policy status: ${policyStatus}`;
+        } else {
+          riskBadge.textContent = "Dynamic risk: Not detected";
+          riskBadge.className = "text-[11px] font-mono text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded font-medium";
+          riskBadge.title = "No reflection or dynamic eval constructs found";
+        }
+
+        document.getElementById("dispatchAiBtn").disabled = false;
+        showToast(`Safely hidden ${data.tokens_isolated} sensitive items. Ready for AI.`, "success");
+
+      } catch (err) {
+        showToast(`Gateway unreachable: ${err.message}`, "error");
+      } finally {
+        scrubBtn.disabled = false;
+        scrubBtn.innerHTML = `<i data-feather="shield" class="w-4 h-4 text-emerald-400"></i><span>Step 1: Hide Private Details</span>`;
+        if (window.feather) feather.replace();
+      }
+    }
+
+    // Step 2: Dispatch to Cloud AI and Suture
+    async function dispatchAiAndSuture() {
+      const scrubbedCode = document.getElementById("scrubbedCodeOutput").value;
+      if (!scrubbedCode.trim()) {
+        showToast("No de-identified code available. Please run Step 1 first.", "warn");
+        return;
+      }
+
+      const instruction = document.getElementById("aiInstructionInput").value || "Review and improve this code";
+      const keyInput = document.getElementById("cloudAiKeyInput");
+      const apiKey = (keyInput && keyInput.value.trim()) ? keyInput.value.trim() : null;
+
+      const dispatchBtn = document.getElementById("dispatchAiBtn");
+      dispatchBtn.disabled = true;
+      dispatchBtn.innerHTML = `
+        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>Dispatching to Cloud AI (max 30s)...</span>
+      `;
+
+      try {
+        const resp = await fetch(`${GATEWAY_BASE}/api/v1/dispatch-ai`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            instruction: instruction,
+            session_id: currentSessionId,
+            api_key: apiKey
+          })
+        });
+
+        if (resp.status === 409) {
+          const errData = await resp.json();
+          showToast(`Session Error: ${errData.detail}`, "error");
+          return;
+        }
+
+        if (!resp.ok) {
+          const errData = await resp.json();
+          throw new Error(errData.detail || `Server returned ${resp.status}`);
+        }
+
+        const data = await resp.json();
+
+        // 1. Update Egress Record
+        document.getElementById("egressInstruction").textContent = data.instruction_sent || "None";
+        document.getElementById("egressBytesBadge").textContent = `${data.payload_bytes || 0} bytes`;
+        document.getElementById("egressPreviewBox").textContent = JSON.stringify(data.egress_preview || {}, null, 2);
+
+        // 2. Handle Known Statuses
+        if (data.status === "AUTH_ERROR") {
+          showToast(`Authentication Error: ${data.error || "Invalid Groq API key"}`, "error");
+          document.getElementById("aiResponseInput").value = `[AUTH_ERROR] ${data.error}`;
+          return;
+        }
+        if (data.status === "RATE_LIMITED") {
+          showToast(`Rate Limit Exceeded: ${data.error || "Groq rate limit reached"}`, "warn");
+          document.getElementById("aiResponseInput").value = `[RATE_LIMITED] ${data.error}`;
+          return;
+        }
+        if (data.status === "TIMEOUT") {
+          showToast("Cloud AI request timed out after 30 seconds.", "error");
+          document.getElementById("aiResponseInput").value = `[TIMEOUT] ${data.error}`;
+          return;
+        }
+        if (data.status === "NETWORK_ERROR") {
+          showToast(`Network Error: ${data.error || "Failed to reach cloud endpoint"}`, "error");
+          document.getElementById("aiResponseInput").value = `[NETWORK_ERROR] ${data.error}`;
+          return;
+        }
+        if (data.status === "BAD_LLM_RESPONSE") {
+          showToast(`Malformed AI Response: ${data.error || "Invalid response format"}`, "error");
+          document.getElementById("aiResponseInput").value = `[BAD_LLM_RESPONSE] ${data.error}`;
+          return;
+        }
+
+        // 3. Update Column 2 and Column 3
+        document.getElementById("aiResponseInput").value = data.raw_llm_response || "";
+        document.getElementById("reconstructedCodeOutput").value = data.reconstructed_code || "";
+
+        const modelLabel = data.model ? `Model: ${data.model}` : "Model: Mock";
+        document.getElementById("llmModelLabel").textContent = modelLabel;
+
+        // 4. Update Audit Badges from Response
+        const exactBadge = document.getElementById("exactMatchBadge");
+        exactBadge.textContent = `Restored: ${data.tokens_restored}`;
+        exactBadge.className = "text-[11px] font-mono text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded font-medium";
+
+        const unmappedBadge = document.getElementById("unmappedBadge");
+        const divergenceReport = document.getElementById("divergenceReport");
+        const divergenceList = document.getElementById("divergenceList");
+
+        const unmappedCount = (data.unmapped_tokens || []).length;
+        if (!data.exact_match || unmappedCount > 0) {
+          unmappedBadge.textContent = `Unmapped tokens: ${unmappedCount}`;
+          unmappedBadge.classList.remove("hidden");
+
+          divergenceList.textContent = data.unmapped_tokens.join(", ");
+          divergenceReport.classList.remove("hidden");
+        } else {
+          unmappedBadge.classList.add("hidden");
+          divergenceReport.classList.add("hidden");
+        }
+
+        // Update footer telemetry strictly from response
+        const modeLabel = data.inference_mode === "REAL_CLOUD_LLM" ? `Real Cloud LLM (${data.model})` : "Mock (offline)";
+        document.getElementById("auditExact").textContent = `Inference: ${modeLabel} · Exact match: ${data.exact_match ? "Yes" : "No"}`;
+        document.getElementById("auditExact").className = data.exact_match ? "text-emerald-700 font-semibold" : "text-amber-700 font-semibold";
+        document.getElementById("auditRestored").textContent = `${data.tokens_restored}`;
+        document.getElementById("auditUnmapped").textContent = `${unmappedCount}`;
+
+        showToast(`Suture complete via ${data.inference_mode}: ${data.tokens_restored} symbols restored (${data.latency_ms}ms).`, "success");
+
+      } catch (err) {
+        showToast(`Dispatch failed: ${err.message}`, "error");
+      } finally {
+        dispatchBtn.disabled = false;
+        dispatchBtn.innerHTML = `<i data-feather="send" class="w-4 h-4 text-white"></i><span id="dispatchBtnText">Step 2: Dispatch to Cloud AI and Suture</span>`;
+        if (window.feather) feather.replace();
+      }
+    }
+
+    // Step 3: Clear Session Memory and Reset UI Panes
+    async function purgeSession() {
+      const purgeBtn = document.getElementById("purgeBtn");
+      purgeBtn.disabled = true;
+
+      try {
+        const resp = await fetch(`${GATEWAY_BASE}/api/v1/session/clear?session_id=${encodeURIComponent(currentSessionId)}`, {
+          method: "POST"
+        });
+
+        if (resp.ok) {
+          showToast("Session memory flushed. Volatile RAM registry cleared.", "success");
+        } else {
+          showToast("Session already cleared or expired.", "info");
+        }
+      } catch (err) {
+        showToast(`Gateway unreachable: ${err.message}`, "error");
+      } finally {
+        // Rotate to a new session UUID and reset all panes & badges
+        currentSessionId = generateUUID();
+        document.getElementById("sessionDisplay").textContent = currentSessionId.slice(0, 8) + "...";
+        document.getElementById("scrubbedCodeOutput").value = "";
+        document.getElementById("aiResponseInput").value = "";
+        document.getElementById("reconstructedCodeOutput").value = "";
+        document.getElementById("dispatchAiBtn").disabled = true;
+
+        // Reset key input and instruction
+        const keyInput = document.getElementById("cloudAiKeyInput");
+        if (keyInput) keyInput.value = "";
+        updateInferenceModeBadge();
+
+        // Reset Egress Record
+        document.getElementById("egressInstruction").textContent = "None";
+        document.getElementById("egressBytesBadge").textContent = "0 bytes";
+        document.getElementById("egressPreviewBox").textContent = "{}";
+        document.getElementById("llmModelLabel").textContent = "Model: None";
+
+        // Reset badges to initial states
+        document.getElementById("hiddenItemsBadge").textContent = "Identifiers hidden: 0";
+        const riskBadge = document.getElementById("dynamicRiskBadge");
+        riskBadge.textContent = "Dynamic risk: Not checked";
+        riskBadge.className = "text-[11px] font-mono text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded font-medium";
+        riskBadge.title = "Dynamic risk evaluation";
+
+        const exactBadge = document.getElementById("exactMatchBadge");
+        exactBadge.textContent = "Awaiting Suture";
+        exactBadge.className = "text-[11px] font-mono text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded font-medium";
+
+        document.getElementById("unmappedBadge").classList.add("hidden");
+        document.getElementById("divergenceReport").classList.add("hidden");
+
+        document.getElementById("auditExact").textContent = "Idle";
+        document.getElementById("auditRestored").textContent = "0";
+        document.getElementById("auditUnmapped").textContent = "0";
+
+        purgeBtn.disabled = false;
+        if (window.feather) feather.replace();
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+sample,level,status,lines,tokens,llr,identifier_coverage,renamed_name_coverage,structural_match,compile_ok,roundtrip_ok,semantic_match,semantic_reason,leak_kwarg,leak_attr,leak_string,leak_comment,leak_other,scrub_lat_ms,suture_lat_ms,total_lat_ms
+01_payroll.py,L1,SUCCESS,20,13,0.1538,0.8462,1.0,True,True,True,PASS,Method kwarg resolved to unique project callee,0,2,0,1,0,0.99,0.108,1.1
+01_payroll.py,L2,SUCCESS,20,20,0.1538,0.8462,1.0,True,True,True,NOT_APPLICABLE,L2 strings de-identified prior to suture (pre-suture execution N/A),0,2,0,0,0,1.047,0.189,1.24
+02_inventory.py,L1,SUCCESS,14,11,0.1,0.8182,1.0,True,True,True,PASS,Inventory tracking and availability match,0,1,0,0,0,0.743,0.067,0.81
+02_inventory.py,L2,SUCCESS,14,11,0.1,0.8182,1.0,True,True,True,NOT_APPLICABLE,L2 strings de-identified prior to suture (pre-suture execution N/A),0,1,0,0,0,0.755,0.066,0.82
+03_auth.py,L1,SUCCESS,12,9,0.0,1.0,1.0,True,True,True,PASS,Credential hashing and token verification match,0,0,0,1,0,0.569,0.054,0.62
+03_auth.py,L2,SUCCESS,12,15,0.0,1.0,1.0,True,True,True,NOT_APPLICABLE,L2 strings de-identified prior to suture (pre-suture execution N/A),0,0,0,0,0,0.661,0.063,0.72
+04_data_cleaning.py,L1,SUCCESS,15,9,0.0,1.0,1.0,True,True,True,PASS,Sanitization and cleaning pipeline match,0,0,1,0,0,0.86,0.092,0.95
+04_data_cleaning.py,L2,SUCCESS,15,19,0.0,1.0,1.0,False,True,True,NOT_APPLICABLE,L2 strings de-identified prior to suture (pre-suture execution N/A),0,0,1,0,0,0.912,0.083,0.99
+05_nested_closure.py,L1,SUCCESS,12,9,0.0,1.0,1.0,True,True,True,PASS,Higher-order closure execution match,0,0,0,0,0,0.365,0.046,0.41
+05_nested_closure.py,L2,SUCCESS,12,9,0.0,1.0,1.0,True,True,True,NOT_APPLICABLE,L2 strings de-identified prior to suture (pre-suture execution N/A),0,0,0,0,0,0.367,0.055,0.42
+06_shadowing.py,L1,SUCCESS,15,7,0.0,1.0,1.0,True,True,True,PASS,Scoped variable shadowing execution match,0,0,0,0,0,0.36,0.126,0.49
+06_shadowing.py,L2,SUCCESS,15,7,0.0,1.0,1.0,True,True,True,NOT_APPLICABLE,L2 strings de-identified prior to suture (pre-suture execution N/A),0,0,0,0,0,0.433,0.048,0.48
+07_decorators.py,L1,SUCCESS,13,10,0.0,1.0,1.0,True,True,True,PASS,Decorator wrapper execution match,0,0,0,0,0,0.512,0.055,0.57
+07_decorators.py,L2,SUCCESS,13,10,0.0,1.0,1.0,True,True,True,NOT_APPLICABLE,L2 strings de-identified prior to suture (pre-suture execution N/A),0,0,0,0,0,0.462,0.054,0.52
+08_kwargs.py,L1,SUCCESS,7,7,0.0,1.0,1.0,True,True,True,PASS,Function kwarg renaming execution match,0,0,0,0,0,0.396,0.044,0.44
+08_kwargs.py,L2,SUCCESS,7,10,0.0,1.0,1.0,True,True,True,NOT_APPLICABLE,L2 strings de-identified prior to suture (pre-suture execution N/A),0,0,0,0,0,0.512,0.05,0.56
+09_lambdas.py,L1,SUCCESS,8,11,0.0,1.0,1.0,True,True,True,PASS,Lambda sorting and calculation match,0,0,0,0,0,0.557,0.055,0.61
+09_lambdas.py,L2,SUCCESS,8,12,0.0,1.0,1.0,True,True,True,NOT_APPLICABLE,L2 strings de-identified prior to suture (pre-suture execution N/A),0,0,0,0,0,0.585,0.058,0.64
+10_comprehensions.py,L1,SUCCESS,5,9,0.1111,0.8889,1.0,True,True,True,PASS,Comprehensions generation match,0,1,0,0,0,0.561,0.055,0.62
+10_comprehensions.py,L2,SUCCESS,5,9,0.1111,0.8889,1.0,True,True,True,NOT_APPLICABLE,L2 strings de-identified prior to suture (pre-suture execution N/A),0,1,0,0,0,0.548,0.06,0.61
+11_global_nonlocal.py,L1,SUCCESS,13,5,0.0,1.0,1.0,True,True,True,PASS,Global and nonlocal state mutation match,0,0,0,0,0,0.406,0.04,0.45
+11_global_nonlocal.py,L2,SUCCESS,13,8,0.0,1.0,1.0,True,True,True,NOT_APPLICABLE,L2 strings de-identified prior to suture (pre-suture execution N/A),0,0,0,0,0,0.452,0.043,0.49
+12_dynamic_risk.py,L1,BLOCKED,8,0,0.0,0.0,1.0,False,False,False,BLOCKED,Fail-closed dynamic reflection risk blocked,0,0,0,0,0,0.169,0.0,0.17
+12_dynamic_risk.py,L2,BLOCKED,8,0,0.0,0.0,1.0,False,False,False,BLOCKED,Fail-closed dynamic reflection risk blocked,0,0,0,0,0,0.238,0.0,0.24
